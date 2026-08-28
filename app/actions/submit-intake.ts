@@ -16,10 +16,10 @@ export async function submitIntake(data: IntakeFormData) {
 
   // 1. Supabase Sync (Targeting 'submissions' table)
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
     
-    if (supabaseUrl && supabaseKey) {
+    if (supabaseUrl !== "https://placeholder.supabase.co") {
       const supabase = createClient(supabaseUrl, supabaseKey);
       const { error } = await supabase.from("submissions").insert([
         {
@@ -51,11 +51,11 @@ export async function submitIntake(data: IntakeFormData) {
 
   // 2. Google Sheets Sync (Defensive)
   try {
-    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || "placeholder@example.com";
+    const privateKey = (process.env.GOOGLE_PRIVATE_KEY || "placeholder-key").replace(/\\n/g, "\n");
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID || "placeholder-id";
 
-    if (serviceAccountEmail && privateKey && spreadsheetId) {
+    if (serviceAccountEmail !== "placeholder@example.com") {
       const auth = new google.auth.JWT({
         email: serviceAccountEmail,
         key: privateKey,

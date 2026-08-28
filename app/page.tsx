@@ -10,7 +10,7 @@ export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
 
   return (
-    <main className="min-h-screen bg-white text-[#1a1a1a] flex flex-col relative overflow-hidden">
+    <main className="min-h-screen bg-white text-[#0F172A] flex flex-col relative overflow-hidden">
       {showIntro && <IntroSequence onComplete={() => setShowIntro(false)} />}
       
       {!showIntro && (
@@ -23,7 +23,7 @@ export default function Home() {
           <div className="max-w-4xl w-full flex flex-col items-start gap-8">
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
               Bridge the <br />
-              <span className="text-gray-400">Hobby Cliff.</span>
+              <span className="text-[#F59E0B]">Hobby Cliff.</span>
             </h1>
             
             <p className="text-xl md:text-2xl font-medium max-w-2xl leading-relaxed text-gray-600">
@@ -39,7 +39,7 @@ export default function Home() {
                 >
                   <Button 
                     size="lg" 
-                    className="h-16 px-10 text-lg font-semibold bg-[#1a1a1a] text-white hover:bg-black uppercase tracking-widest"
+                    className="h-16 px-10 text-lg font-semibold bg-[#0F172A] text-white hover:bg-[#F59E0B] rounded-none uppercase tracking-widest clip-hexagon-flat"
                   >
                     Enter the Hive
                   </Button>

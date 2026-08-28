@@ -7,34 +7,34 @@
 @theme {
   --font-sans: var(--font-inter);
   
-  /* Strictly White and Charcoal */
+  /* Strictly White, Deep Slate, and Golden-Amber */
   --color-background: #ffffff;
-  --color-foreground: #1a1a1a;
+  --color-foreground: #0F172A; /* Deep slate */
 
   --color-card: #ffffff;
-  --color-card-foreground: #1a1a1a;
+  --color-card-foreground: #0F172A;
 
   --color-popover: #ffffff;
-  --color-popover-foreground: #1a1a1a;
+  --color-popover-foreground: #0F172A;
 
-  --color-primary: #1a1a1a;
+  --color-primary: #0F172A;
   --color-primary-foreground: #ffffff;
 
   --color-secondary: #f4f4f5;
-  --color-secondary-foreground: #1a1a1a;
+  --color-secondary-foreground: #0F172A;
 
   --color-muted: #f4f4f5;
-  --color-muted-foreground: #71717a;
+  --color-muted-foreground: #64748B; /* Slate muted */
 
-  --color-accent: #f4f4f5;
-  --color-accent-foreground: #1a1a1a;
+  --color-accent: #F59E0B; /* Golden-amber */
+  --color-accent-foreground: #ffffff;
 
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
 
-  --color-border: #e4e4e7;
-  --color-input: #e4e4e7;
-  --color-ring: #1a1a1a;
+  --color-border: #E2E8F0; /* Slate border */
+  --color-input: #E2E8F0;
+  --color-ring: #F59E0B; /* Amber focus ring */
 
   /* Force zero radius for enterprise grid structure */
   --radius: 0px;
@@ -43,15 +43,26 @@
 @layer base {
   :root {
     --background: #ffffff;
-    --foreground: #1a1a1a;
+    --foreground: #0F172A;
   }
   
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground;
+    @apply bg-background text-foreground antialiased selection:bg-accent selection:text-accent-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* Force border radius to 0 everywhere possible */
   * {
     @apply border-border;
+  }
+}
+
+/* Sharp Hexagonal borders for cards if needed */
+@layer utilities {
+  .clip-hexagon {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+  .clip-hexagon-flat {
+    clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
   }
 }

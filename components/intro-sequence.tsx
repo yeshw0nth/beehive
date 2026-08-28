@@ -86,7 +86,7 @@ export function IntroSequence({ onComplete }: { onComplete: () => void }) {
         </motion.div>
 
         {/* Text Container */}
-        <div className="relative z-10 flex text-6xl md:text-8xl font-bold tracking-tighter text-[#1A1A1A]">
+        <div className="relative z-10 flex text-6xl md:text-8xl font-bold tracking-tighter text-[#0F172A]">
           <motion.div
             initial={{ x: 0 }}
             animate={{

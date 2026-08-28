@@ -2,16 +2,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { google } from "googleapis";
-import { z } from "zod";
-
-// Zod Schema
-export const intakeFormSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters."),
-  primaryVertical: z.enum(["Tech", "Design", "Arts"]),
-  primarySkill: z.string().min(2, "Skill must be at least 2 characters."),
-});
-
-export type IntakeFormData = z.infer<typeof intakeFormSchema>;
+import { intakeFormSchema, IntakeFormData } from "@/lib/schema";
 
 export async function submitIntake(data: IntakeFormData) {
   const result = intakeFormSchema.safeParse(data);
@@ -19,22 +10,29 @@ export async function submitIntake(data: IntakeFormData) {
     return { success: false, error: "Validation failed" };
   }
 
-  const { fullName, primaryVertical, primarySkill } = result.data;
+  const payload = result.data;
   let supabaseSuccess = false;
   let sheetsSuccess = false;
 
-  // 1. Supabase Sync
+  // 1. Supabase Sync (Targeting 'submissions' table)
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (supabaseUrl && supabaseKey) {
       const supabase = createClient(supabaseUrl, supabaseKey);
-      const { error } = await supabase.from("profiles").insert([
+      const { error } = await supabase.from("submissions").insert([
         {
-          full_name: fullName,
-          primary_vertical: primaryVertical,
-          primary_skill: primarySkill,
+          full_name: payload.fullName,
+          roll_number: payload.rollNumber,
+          branch: payload.branch,
+          whatsapp_number: payload.whatsappNumber,
+          primary_vertical: payload.primaryVertical,
+          core_skill: payload.coreSkill,
+          proficiency_level: payload.proficiencyLevel,
+          portfolio_url: payload.portfolioUrl,
+          desired_cross_skill: payload.desiredCrossSkill,
+          sprint_agreement: payload.sprintAgreement,
           created_at: new Date().toISOString(),
         }
       ]);
@@ -51,29 +49,40 @@ export async function submitIntake(data: IntakeFormData) {
     console.error("Supabase Error:", error);
   }
 
-  // 2. Google Sheets Sync
+  // 2. Google Sheets Sync (Defensive)
   try {
     const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
     const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
 
     if (serviceAccountEmail && privateKey && spreadsheetId) {
-      const auth = new google.auth.JWT(
-        serviceAccountEmail,
-        undefined,
-        privateKey,
-        ["https://www.googleapis.com/auth/spreadsheets"]
-      );
+      const auth = new google.auth.JWT({
+        email: serviceAccountEmail,
+        key: privateKey,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+      });
 
       const sheets = google.sheets({ version: "v4", auth });
 
       await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: "Sheet1!A:D", // Adjust based on your sheet name and columns
+        range: "Sheet1!A:K",
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [
-            [fullName, primaryVertical, primarySkill, new Date().toISOString()]
+            [
+              payload.fullName, 
+              payload.rollNumber, 
+              payload.branch,
+              payload.whatsappNumber,
+              payload.primaryVertical, 
+              payload.coreSkill, 
+              payload.proficiencyLevel,
+              payload.portfolioUrl,
+              payload.desiredCrossSkill,
+              payload.sprintAgreement ? "Yes" : "No",
+              new Date().toISOString()
+            ]
           ]
         }
       });
@@ -82,10 +91,11 @@ export async function submitIntake(data: IntakeFormData) {
       console.warn("Google Sheets credentials missing. Skipping Google Sheets append.");
     }
   } catch (error) {
-    console.error("Google Sheets Error:", error);
+    // We catch and log so it doesn't throw a fatal 500 error if Sheets fails
+    console.warn("Google Sheets Sync Failed:", error);
   }
 
-  // We return a status object. If at least one succeeds, or if both are skipped (dev mode without env vars), we can treat it as a success for UX purposes, but ideally we want both.
+  // Return success as long as we validated, even if env vars are missing (for dev), or if supabase succeeded
   return { 
     success: true, 
     supabaseSuccess, 

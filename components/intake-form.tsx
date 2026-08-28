@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { submitIntake } from "@/app/actions/submit-intake";
 import { intakeFormSchema, IntakeFormData } from "@/lib/schema";
@@ -29,7 +29,6 @@ export function IntakeForm() {
     setValue,
     control,
     trigger,
-    watch,
     formState: { errors },
   } = useForm<IntakeFormData>({
     resolver: zodResolver(intakeFormSchema),
@@ -40,7 +39,10 @@ export function IntakeForm() {
     }
   });
 
-  const selectedVertical = watch("primaryVertical");
+  const selectedVertical = useWatch({
+    control,
+    name: "primaryVertical",
+  });
 
   const onSubmit = async (data: IntakeFormData) => {
     setIsSubmitting(true);

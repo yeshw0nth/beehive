@@ -16,7 +16,26 @@ import { motion, AnimatePresence } from "framer-motion";
 
 
 const proficiencies = ["Beginner", "Intermediate", "Advanced", "Shipped Projects"] as const;
-const branches = ["ME", "CSE", "ECE", "EEE", "Civil", "Other"];
+const branches = ["ME", "CSE", "ECE", "EEE", "Civil", "CSM", "Other"];
+
+const activityCategories = [
+  {
+    name: "Tech",
+    activities: ["Vibecoding", "AI Tools"]
+  },
+  {
+    name: "Cultural / Performing Arts",
+    activities: ["Singing", "Dancing", "Anchoring", "Stand-up Comedy"]
+  },
+  {
+    name: "Content & Media",
+    activities: ["Content Creation", "Editing", "Influencer"]
+  },
+  {
+    name: "Outreach & Creative",
+    activities: ["Sponsorship", "Coloring", "Painting", "Marketing"]
+  }
+];
 
 export function IntakeForm() {
   const [step, setStep] = useState(1);
@@ -42,6 +61,21 @@ export function IntakeForm() {
 
 
 
+  const coreSkillValue = watch("coreSkill") || "";
+  const selectedActivities = coreSkillValue ? coreSkillValue.split(", ").filter(Boolean) : [];
+
+  const handleActivityChange = (activity: string, checked: boolean) => {
+    let newActivities = [...selectedActivities];
+    if (checked) {
+      if (!newActivities.includes(activity)) {
+        newActivities.push(activity);
+      }
+    } else {
+      newActivities = newActivities.filter(a => a !== activity);
+    }
+    setValue("coreSkill", newActivities.join(", "), { shouldValidate: true });
+  };
+
   const onSubmit = async (data: IntakeFormData) => {
     setIsSubmitting(true);
     const result = await submitIntake(data);
@@ -58,7 +92,7 @@ export function IntakeForm() {
   const nextStep = async (fieldsToValidate: (keyof IntakeFormData)[]) => {
     const isValid = await trigger(fieldsToValidate);
     if (isValid) {
-      setStep((s) => Math.min(s + 1, 7));
+      setStep((s) => Math.min(s + 1, 6));
     }
   };
   
@@ -98,7 +132,7 @@ export function IntakeForm() {
     <div className="w-full max-w-xl mx-auto">
       {/* Progress Grid */}
       <div className="mb-10 flex space-x-1">
-        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+        {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className={`h-2 flex-1 transition-colors ${step >= i ? 'bg-[#F59E0B]' : 'bg-gray-200'}`} />
         ))}
       </div>
@@ -115,9 +149,14 @@ export function IntakeForm() {
                   {errors.fullName && <p className="text-red-500 text-sm font-medium">{errors.fullName.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="rollNumber" className="text-sm uppercase tracking-wider font-semibold">Roll Number</Label>
-                  <Input id="rollNumber" className="h-12 border-2 border-[#0F172A] focus-visible:ring-0 focus-visible:border-[#F59E0B] rounded-none bg-gray-50 uppercase" {...register("rollNumber")} />
+                  <Label htmlFor="rollNumber" className="text-sm uppercase tracking-wider font-semibold">Year</Label>
+                  <Input id="rollNumber" className="h-12 border-2 border-[#0F172A] focus-visible:ring-0 focus-visible:border-[#F59E0B] rounded-none bg-gray-50" {...register("rollNumber")} />
                   {errors.rollNumber && <p className="text-red-500 text-sm font-medium">{errors.rollNumber.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm uppercase tracking-wider font-semibold">Email Address</Label>
+                  <Input id="email" type="email" className="h-12 border-2 border-[#0F172A] focus-visible:ring-0 focus-visible:border-[#F59E0B] rounded-none bg-gray-50" {...register("email")} />
+                  {errors.email && <p className="text-red-500 text-sm font-medium">{errors.email.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm uppercase tracking-wider font-semibold">Branch</Label>
@@ -139,7 +178,7 @@ export function IntakeForm() {
                   {errors.whatsappNumber && <p className="text-red-500 text-sm font-medium">{errors.whatsappNumber.message}</p>}
                 </div>
               </div>
-              <Button type="button" onClick={() => nextStep(["fullName", "rollNumber", "branch", "whatsappNumber"])} className="w-full h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase tracking-widest mt-4">
+              <Button type="button" onClick={() => nextStep(["fullName", "rollNumber", "email", "branch", "whatsappNumber"])} className="w-full h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase tracking-widest mt-4">
                 Initialize Sequence
               </Button>
             </motion.div>
@@ -147,25 +186,43 @@ export function IntakeForm() {
 
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 2: The Nectar</h3>
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm uppercase tracking-wider font-semibold">Email Address</Label>
-                <Input id="email" type="email" className="h-12 border-2 border-[#0F172A] focus-visible:ring-0 focus-visible:border-[#F59E0B] rounded-none bg-gray-50" {...register("email")} />
-                {errors.email && <p className="text-red-500 text-sm font-medium">{errors.email.message}</p>}
-              </div>
-              <div className="flex gap-4 pt-4">
-                <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 text-lg rounded-none border-2 border-[#0F172A] font-bold uppercase hover:bg-gray-100">Back</Button>
-                <Button type="button" onClick={() => nextStep(["email"])} className="flex-1 h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase">Proceed</Button>
-              </div>
-            </motion.div>
-          )}
-
-          {step === 3 && (
-            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 3: Specifics</h3>
-              <div className="space-y-2">
-                <Label htmlFor="coreSkill" className="text-sm uppercase tracking-wider font-semibold">Core Skill</Label>
-                <Input id="coreSkill" placeholder="e.g., Next.js, Figma, Premiere Pro" className="h-14 text-lg border-2 border-[#0F172A] focus-visible:ring-0 focus-visible:border-[#F59E0B] rounded-none bg-gray-50" {...register("coreSkill")} />
+              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 2: Specifics</h3>
+              <div className="space-y-4">
+                <Label className="text-sm uppercase tracking-wider font-semibold">Activities</Label>
+                <div className="space-y-4 max-h-[380px] overflow-y-auto pr-2 border-2 border-[#0F172A] p-4 bg-gray-50/50">
+                  {activityCategories.map((category) => (
+                    <div key={category.name} className="space-y-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#F59E0B] border-b border-gray-200 pb-1">{category.name}</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {category.activities.map((activity) => {
+                          const isChecked = selectedActivities.includes(activity);
+                          return (
+                            <div
+                              key={activity}
+                              className={`flex items-center space-x-3 border-2 p-3 bg-white hover:border-[#F59E0B] transition-colors cursor-pointer rounded-none ${isChecked ? 'border-[#F59E0B]' : 'border-[#0F172A]/20'}`}
+                              onClick={() => handleActivityChange(activity, !isChecked)}
+                            >
+                              <Checkbox
+                                id={`activity-${activity}`}
+                                checked={isChecked}
+                                onCheckedChange={(checked) => handleActivityChange(activity, !!checked)}
+                                className="border-[#0F172A] data-[state=checked]:bg-[#F59E0B] data-[state=checked]:text-white rounded-none w-5 h-5"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <Label
+                                htmlFor={`activity-${activity}`}
+                                className="cursor-pointer font-bold text-sm flex-1 select-none text-[#0F172A]"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {activity}
+                              </Label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
                 {errors.coreSkill && <p className="text-red-500 text-sm font-medium">{errors.coreSkill.message}</p>}
               </div>
               <div className="flex gap-4 pt-4">
@@ -175,9 +232,9 @@ export function IntakeForm() {
             </motion.div>
           )}
 
-          {step === 4 && (
-            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 4: Proficiency</h3>
+          {step === 3 && (
+            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 3: Proficiency</h3>
               <div className="space-y-4">
                 <Label className="text-sm uppercase tracking-wider font-semibold">Proficiency Level</Label>
                 <Controller control={control} name="proficiencyLevel" render={({ field }) => (
@@ -199,9 +256,9 @@ export function IntakeForm() {
             </motion.div>
           )}
 
-          {step === 5 && (
-            <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 5: The Proof</h3>
+          {step === 4 && (
+            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 4: The Proof</h3>
               <div className="space-y-2">
                 <Label htmlFor="portfolioUrl" className="text-sm uppercase tracking-wider font-semibold">Portfolio / Proof of Work</Label>
                 <Input id="portfolioUrl" placeholder="GitHub, Behance, Drive, or Live Link" className="h-14 text-lg border-2 border-[#0F172A] focus-visible:ring-0 focus-visible:border-[#F59E0B] rounded-none bg-gray-50" {...register("portfolioUrl")} />
@@ -214,9 +271,9 @@ export function IntakeForm() {
             </motion.div>
           )}
 
-          {step === 6 && (
-            <motion.div key="step6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 6: The Gap</h3>
+          {step === 5 && (
+            <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 5: The Gap</h3>
               <div className="space-y-2">
                 <Label htmlFor="desiredCrossSkill" className="text-sm uppercase tracking-wider font-semibold">Desired Cross-Skill for Pod Partner</Label>
                 <Input id="desiredCrossSkill" placeholder="What skill do you need in your team?" className="h-14 text-lg border-2 border-[#0F172A] focus-visible:ring-0 focus-visible:border-[#F59E0B] rounded-none bg-gray-50" {...register("desiredCrossSkill")} />
@@ -229,9 +286,9 @@ export function IntakeForm() {
             </motion.div>
           )}
 
-          {step === 7 && (
-            <motion.div key="step7" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 7: Commitment</h3>
+          {step === 6 && (
+            <motion.div key="step6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 6: Commitment</h3>
               <div className="space-y-4 border-l-4 border-[#F59E0B] pl-6 py-2">
                 <Controller control={control} name="sprintAgreement" render={({ field }) => (
                   <div className="flex items-start space-x-4">

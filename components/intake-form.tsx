@@ -9,13 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 
 
-const proficiencies = ["Beginner", "Intermediate", "Advanced", "Shipped Projects"] as const;
 const branches = ["ME", "CSE", "ECE", "EEE", "Civil", "CSM", "Other"];
 
 const activityCategories = [
@@ -41,6 +39,7 @@ export function IntakeForm() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionData, setSubmissionData] = useState<{ rollNumber: string; timestamp: string } | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
 
   const {
     register,
@@ -48,12 +47,13 @@ export function IntakeForm() {
     setValue,
     control,
     trigger,
+    getValues,
     formState: { errors },
   } = useForm<IntakeFormData>({
     resolver: zodResolver(intakeFormSchema),
     defaultValues: {
       branch: "",
-      proficiencyLevel: "",
+      skillRating: 5,
       sprintAgreement: false,
     }
   });
@@ -99,6 +99,15 @@ export function IntakeForm() {
   
   const prevStep = () => setStep((s) => Math.max(s - 1, 1));
 
+  const handleFinalize = async () => {
+    const isValid = await trigger(["sprintAgreement"]);
+    if (isValid) {
+      setShowSummary(true);
+    }
+  };
+
+  const showHeader = step < 4 && !showSummary && !submissionData;
+
   if (submissionData) {
     return (
       <motion.div 
@@ -117,14 +126,90 @@ export function IntakeForm() {
         </div>
 
         <p className="text-[#0F172A] text-xl font-medium max-w-md leading-relaxed pt-2">
-          Your application has been successfully received. We will contact you directly via <strong className="text-[#F59E0B]">WhatsApp</strong> regarding pod selection.
+          Thank you for registering. Your application has been received.
         </p>
       </motion.div>
     );
   }
 
+  if (showSummary && !submissionData) {
+    return (
+      <div className="w-full max-w-xl mx-auto space-y-6">
+        <div className="mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            Review Application
+          </h1>
+          <p className="text-xl text-gray-500">
+            Please confirm your details before submitting.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-6 border-4 border-[#0F172A] p-8 bg-gray-50">
+            <h3 className="text-2xl font-bold uppercase tracking-tight mb-4 border-b-2 border-[#0F172A] pb-2">Review</h3>
+            
+            <div className="space-y-4 text-sm font-semibold">
+              <div>
+                <span className="text-gray-500 uppercase tracking-wider block text-xs">Full Name</span>
+                <span className="text-[#0F172A] text-base font-bold">{getValues("fullName")}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 uppercase tracking-wider block text-xs">Year</span>
+                <span className="text-[#0F172A] text-base font-bold">{getValues("rollNumber")}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 uppercase tracking-wider block text-xs">Email Address</span>
+                <span className="text-[#0F172A] text-base font-bold">{getValues("email")}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 uppercase tracking-wider block text-xs">Branch</span>
+                <span className="text-[#0F172A] text-base font-bold">{getValues("branch")}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 uppercase tracking-wider block text-xs">WhatsApp Number</span>
+                <span className="text-[#0F172A] text-base font-bold">{getValues("whatsappNumber")}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 uppercase tracking-wider block text-xs">Selected Activities</span>
+                <span className="text-[#0F172A] text-base font-bold">{getValues("coreSkill")}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 uppercase tracking-wider block text-xs">Skill Rating</span>
+                <span className="text-[#0F172A] text-base font-bold">{getValues("skillRating")}/10</span>
+              </div>
+              <div>
+                <span className="text-gray-500 uppercase tracking-wider block text-xs">Terms & Conditions</span>
+                <span className="text-[#0F172A] text-base font-bold">{getValues("sprintAgreement") ? "Agreed" : "Not Agreed"}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-6 border-t-2 border-[#0F172A]">
+              <Button type="button" variant="outline" onClick={() => setShowSummary(false)} className="flex-1 h-14 text-lg rounded-none border-2 border-[#0F172A] font-bold uppercase hover:bg-gray-100">
+                Edit
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="flex-1 h-14 text-lg bg-[#F59E0B] text-[#0F172A] hover:bg-[#D97706] hover:text-white transition-colors rounded-none font-bold uppercase">
+                {isSubmitting ? "Syncing..." : "Submit Application"}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-xl mx-auto">
+      {showHeader && (
+        <div className="mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            Enter your details.
+          </h1>
+          <p className="text-xl text-gray-500">
+            Let&apos;s align your skills with the right opportunities.
+          </p>
+        </div>
+      )}
+
       {/* Progress Grid */}
       <div className="mb-10 flex space-x-1">
         {[1, 2, 3, 4].map((i) => (
@@ -231,22 +316,35 @@ export function IntakeForm() {
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
               <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 3: Proficiency</h3>
               <div className="space-y-4">
-                <Label className="text-sm uppercase tracking-wider font-semibold">Proficiency Level</Label>
-                <Controller control={control} name="proficiencyLevel" render={({ field }) => (
-                  <RadioGroup onValueChange={field.onChange} value={field.value} className="space-y-3">
-                    {proficiencies.map(prof => (
-                      <div key={prof} className="flex items-center space-x-3 border-2 border-[#0F172A] p-4 bg-gray-50 hover:border-[#F59E0B] transition-colors cursor-pointer" onClick={() => field.onChange(prof)}>
-                        <RadioGroupItem value={prof} id={prof} className="border-[#0F172A] text-[#F59E0B]" />
-                        <Label htmlFor={prof} className="cursor-pointer font-bold text-base flex-1">{prof}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
+                <Label className="text-sm uppercase tracking-wider font-semibold">
+                  Rate your proficiency in {coreSkillValue || "your selected activities"}
+                </Label>
+                <Controller control={control} name="skillRating" render={({ field }) => (
+                  <div className="flex flex-wrap gap-2 justify-between mt-2">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
+                      const isSelected = field.value === num;
+                      return (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => field.onChange(num)}
+                          className={`w-10 h-10 sm:w-11 sm:h-11 border-2 font-bold text-lg transition-colors duration-150 rounded-none flex items-center justify-center ${
+                            isSelected
+                              ? "bg-[#F59E0B] text-white border-[#F59E0B]"
+                              : "border-[#0F172A] text-[#0F172A] hover:border-[#F59E0B] bg-white"
+                          }`}
+                        >
+                          {num}
+                        </button>
+                      );
+                    })}
+                  </div>
                 )} />
-                {errors.proficiencyLevel && <p className="text-red-500 text-sm font-medium">{errors.proficiencyLevel.message}</p>}
+                {errors.skillRating && <p className="text-red-500 text-sm font-medium">{errors.skillRating.message}</p>}
               </div>
               <div className="flex gap-4 pt-4">
                 <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 text-lg rounded-none border-2 border-[#0F172A] font-bold uppercase hover:bg-gray-100">Back</Button>
-                <Button type="button" onClick={() => nextStep(["proficiencyLevel"])} className="flex-1 h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase">Proceed</Button>
+                <Button type="button" onClick={() => nextStep(["skillRating"])} className="flex-1 h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase">Proceed</Button>
               </div>
             </motion.div>
           )}
@@ -259,7 +357,7 @@ export function IntakeForm() {
                   <div className="flex items-start space-x-4">
                     <Checkbox id="sprintAgreement" checked={field.value} onCheckedChange={field.onChange} className="mt-1 border-2 border-[#0F172A] data-[state=checked]:bg-[#F59E0B] data-[state=checked]:text-white rounded-none w-6 h-6" />
                     <Label htmlFor="sprintAgreement" className="text-base font-semibold leading-relaxed cursor-pointer">
-                      I commit to the 14-Day Micro-Sprint upon cohort selection.
+                      I agree to the Terms & Conditions.
                     </Label>
                   </div>
                 )} />
@@ -267,11 +365,9 @@ export function IntakeForm() {
               </div>
               <div className="flex gap-4 pt-8">
                 <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 text-lg rounded-none border-2 border-[#0F172A] font-bold uppercase hover:bg-gray-100">Back</Button>
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
-                  <Button type="submit" disabled={isSubmitting} className="w-full h-14 text-lg bg-[#F59E0B] text-[#0F172A] hover:bg-[#D97706] hover:text-white transition-colors rounded-none font-bold uppercase tracking-wider">
-                    {isSubmitting ? "Syncing..." : "Finalize Intake"}
-                  </Button>
-                </motion.div>
+                <Button type="button" onClick={handleFinalize} className="flex-1 h-14 text-lg bg-[#F59E0B] text-[#0F172A] hover:bg-[#D97706] hover:text-white transition-colors rounded-none font-bold uppercase">
+                  Finalize
+                </Button>
               </div>
             </motion.div>
           )}

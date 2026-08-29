@@ -20,15 +20,6 @@ export default function JoinPage() {
         </header>
 
         <div className="flex-1 flex flex-col justify-center pb-24">
-          <div className="mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-              Enter your details.
-            </h1>
-            <p className="text-xl text-gray-500">
-              Let&apos;s align your skills with the right opportunities.
-            </p>
-          </div>
-
           <IntakeForm />
         </div>
       </div>

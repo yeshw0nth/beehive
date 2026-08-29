@@ -29,7 +29,7 @@ export async function submitIntake(data: IntakeFormData) {
           whatsapp_number: payload.whatsappNumber,
           primary_vertical: payload.email,
           core_skill: payload.coreSkill,
-          proficiency_level: payload.proficiencyLevel,
+          skill_rating: payload.skillRating,
           sprint_agreement: payload.sprintAgreement,
           created_at: new Date().toISOString(),
         }
@@ -75,7 +75,7 @@ export async function submitIntake(data: IntakeFormData) {
               payload.whatsappNumber,
               payload.email, 
               payload.coreSkill, 
-              payload.proficiencyLevel,
+              payload.skillRating,
               payload.sprintAgreement ? "Yes" : "No",
               new Date().toISOString()
             ]

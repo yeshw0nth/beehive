@@ -18,20 +18,62 @@ const branches = ["ME", "CSE", "ECE", "EEE", "Civil", "CSM", "Other"];
 
 const activityCategories = [
   {
-    name: "Tech",
-    activities: ["Vibecoding", "AI Tools"]
+    name: "Software & Tech",
+    talents: [
+      "React", "Next.js", "Vue", "Tailwind CSS", "Framer Motion",
+      "Node.js", "Python", "Java", "Go", "PostgreSQL", "MongoDB",
+      "Flutter", "React Native", "Swift", "Kotlin", "AWS", "Docker",
+      "Kubernetes", "Vercel", "CI/CD", "Unity", "Unreal Engine",
+      "C#", "C++", "Solidity", "Smart Contracts", "DApps"
+    ]
   },
   {
-    name: "Cultural / Performing Arts",
-    activities: ["Singing", "Dancing", "Anchoring", "Stand-up Comedy"]
+    name: "AI & Data Science",
+    talents: [
+      "TensorFlow", "PyTorch", "Scikit-Learn", "LangChain",
+      "OpenAI API", "Midjourney", "Cursor", "Python", "R",
+      "Pandas", "PowerBI"
+    ]
   },
   {
-    name: "Content & Media",
-    activities: ["Content Creation", "Editing", "Influencer"]
+    name: "Core Engineering",
+    talents: [
+      "SolidWorks", "AutoCAD", "ANSYS", "Fusion360",
+      "Arduino", "Raspberry Pi", "PCB Design", "Microcontrollers",
+      "ROS", "Mechatronics", "3D Printing", "CNC Machining"
+    ]
   },
   {
-    name: "Outreach & Creative",
-    activities: ["Sponsorship", "Coloring", "Painting", "Marketing"]
+    name: "Design & Visuals",
+    talents: [
+      "Figma", "Framer", "User Research", "Wireframing",
+      "Adobe Illustrator", "Photoshop", "Typography", "Blender",
+      "Maya", "Cinema 4D", "After Effects", "Lottie", "Painting",
+      "Sketching", "Digital Illustration", "Sculpting", "Origami"
+    ]
+  },
+  {
+    name: "Media & Writing",
+    talents: [
+      "Premiere Pro", "DaVinci Resolve", "Final Cut", "Event Photography",
+      "Portrait Photography", "Product Photography", "Blogging",
+      "Scriptwriting", "Storytelling", "Poetry", "SEO", "Documentation",
+      "Ad Copy", "Mixing", "Mastering", "Ableton", "FL Studio"
+    ]
+  },
+  {
+    name: "Business & Arts",
+    talents: [
+      "Logistics", "Resource Allocation", "Agile/Scrum",
+      "Social Media Management", "Growth Hacking", "B2B Pitching",
+      "Sponsorship Generation", "Client Negotiation", "Financial Modeling",
+      "Budgeting", "Excel Mastery", "Vocals", "Acoustic Instruments",
+      "Classical Music", "Beatboxing", "DJing", "Classical Dance",
+      "Hip-Hop", "Contemporary", "Folk Dance", "Acting", "Stand-up Comedy",
+      "Debate", "Public Speaking", "Anchoring", "Competitive Gaming",
+      "Twitch/YouTube Streaming", "Commentary", "Team Sports Captaincy",
+      "Chess", "Yoga Instruction", "Fitness Coaching"
+    ]
   }
 ];
 
@@ -40,6 +82,9 @@ export function IntakeForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionData, setSubmissionData] = useState<{ rollNumber: string; timestamp: string } | null>(null);
   const [showSummary, setShowSummary] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [showOtherInput, setShowOtherInput] = useState<Record<number, boolean>>({});
+  const [otherText, setOtherText] = useState<Record<number, string>>({});
 
   const {
     register,
@@ -75,6 +120,23 @@ export function IntakeForm() {
       newActivities = newActivities.filter(a => a !== activity);
     }
     setValue("coreSkill", newActivities.join(", "), { shouldValidate: true });
+  };
+
+  const handleTalentToggle = (talent: string) => {
+    const isSelected = selectedActivities.includes(talent);
+    handleActivityChange(talent, !isSelected);
+  };
+
+  const handleOtherSave = (catIdx: number) => {
+    const text = (otherText[catIdx] || "").trim();
+    if (text) {
+      // Toggle selection of this custom talent if it's not already added
+      if (!selectedActivities.includes(text)) {
+        handleActivityChange(text, true);
+      }
+      setOtherText(prev => ({ ...prev, [catIdx]: "" }));
+      setShowOtherInput(prev => ({ ...prev, [catIdx]: false }));
+    }
   };
 
   const onSubmit = async (data: IntakeFormData) => {
@@ -266,44 +328,98 @@ export function IntakeForm() {
 
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 2: Specifics</h3>
+              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 2: Skill & Talent Selection</h3>
               <div className="space-y-4">
-                <Label className="text-sm uppercase tracking-wider font-semibold">Activities</Label>
-                <div className="space-y-4 max-h-[380px] overflow-y-auto pr-2 border-2 border-[#0F172A] p-4 bg-gray-50/50">
-                  {activityCategories.map((category) => (
-                    <div key={category.name} className="space-y-2">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#F59E0B] border-b border-gray-200 pb-1">{category.name}</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {category.activities.map((activity) => {
-                          const isChecked = selectedActivities.includes(activity);
-                          return (
-                            <div
-                              key={activity}
-                              className={`flex items-center space-x-3 border-2 p-3 bg-white hover:border-[#F59E0B] transition-colors cursor-pointer rounded-none ${isChecked ? 'border-[#F59E0B]' : 'border-[#0F172A]/20'}`}
-                              onClick={() => handleActivityChange(activity, !isChecked)}
-                            >
-                              <Checkbox
-                                id={`activity-${activity}`}
-                                checked={isChecked}
-                                onCheckedChange={(checked) => handleActivityChange(activity, !!checked)}
-                                className="border-[#0F172A] data-[state=checked]:bg-[#F59E0B] data-[state=checked]:text-white rounded-none w-5 h-5"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              <Label
-                                htmlFor={`activity-${activity}`}
-                                className="cursor-pointer font-bold text-sm flex-1 select-none text-[#0F172A]"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {activity}
-                              </Label>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                <Label className="text-sm uppercase tracking-wider font-semibold text-[#1E293B]">Select a category to expand skills</Label>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {activityCategories.map((category, idx) => (
+                    <button
+                      key={category.name}
+                      type="button"
+                      onClick={() => setActiveCategory(activeCategory === idx ? null : idx)}
+                      className={`aspect-square flex items-center justify-center p-6 text-center font-bold text-lg uppercase transition-all duration-150 rounded-none border-4 ${
+                        activeCategory === idx
+                          ? "border-[#FBBF24] bg-[#1E293B] text-[#FBBF24]"
+                          : "border-[#1E293B] text-[#1E293B] bg-white hover:border-[#FBBF24]"
+                      }`}
+                    >
+                      {category.name}
+                    </button>
                   ))}
                 </div>
-                {errors.coreSkill && <p className="text-red-500 text-sm font-medium">{errors.coreSkill.message}</p>}
+
+                <AnimatePresence>
+                  {activeCategory !== null && (
+                    <motion.div
+                      key={activeCategory}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden mt-6 border-4 border-[#1E293B] p-6 bg-gray-50/50"
+                    >
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-[#1E293B] border-b-2 border-[#1E293B] pb-2 mb-4">
+                        Select Talents: {activityCategories[activeCategory].name}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {activityCategories[activeCategory].talents.map((talent) => {
+                          const isSelected = selectedActivities.includes(talent);
+                          return (
+                            <button
+                              key={talent}
+                              type="button"
+                              onClick={() => handleTalentToggle(talent)}
+                              className={`px-4 py-2 rounded-full border-2 text-xs font-bold uppercase tracking-wider transition-all duration-150 ${
+                                isSelected
+                                  ? "border-[#FBBF24] text-[#FBBF24] bg-[#1E293B]"
+                                  : "border-[#1E293B] text-[#1E293B] bg-transparent hover:border-[#FBBF24]"
+                              }`}
+                            >
+                              {talent}
+                            </button>
+                          );
+                        })}
+
+                        {/* Escape Hatch */}
+                        {showOtherInput[activeCategory] ? (
+                          <div className="flex items-center space-x-2 border-2 border-[#FBBF24] px-3 py-1 rounded-full bg-white max-w-[250px]">
+                            <input
+                              type="text"
+                              value={otherText[activeCategory] || ""}
+                              onChange={(e) => setOtherText(prev => ({ ...prev, [activeCategory]: e.target.value }))}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleOtherSave(activeCategory);
+                                }
+                              }}
+                              placeholder="Specify talent..."
+                              className="text-xs font-semibold uppercase tracking-wider text-[#1E293B] bg-transparent outline-none w-full"
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleOtherSave(activeCategory)}
+                              className="text-xs font-extrabold uppercase text-[#F59E0B] hover:text-[#D97706]"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setShowOtherInput(prev => ({ ...prev, [activeCategory]: true }))}
+                            className="px-4 py-2 rounded-full border-2 border-dashed border-[#1E293B] text-[#1E293B] bg-transparent hover:border-[#FBBF24] hover:text-[#FBBF24] text-xs font-bold uppercase tracking-wider"
+                          >
+                            Other (Specify)
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {errors.coreSkill && <p className="text-red-500 text-sm font-medium mt-2">{errors.coreSkill.message}</p>}
               </div>
               <div className="flex gap-4 pt-4">
                 <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 text-lg rounded-none border-2 border-[#0F172A] font-bold uppercase hover:bg-gray-100">Back</Button>

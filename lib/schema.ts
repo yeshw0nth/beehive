@@ -7,7 +7,7 @@ export const intakeFormSchema = z.object({
   branch: z.string().min(2, "Branch is required."),
   whatsappNumber: z.string().min(10, "Valid WhatsApp number is required."),
   
-  primaryVertical: z.string().min(2, "Primary vertical is required."),
+  email: z.string().email("Valid email is required."),
   coreSkill: z.string().min(2, "Core skill is required."),
   proficiencyLevel: z.string().min(2, "Proficiency level is required."),
   portfolioUrl: z.string().url("Must be a valid URL").or(z.literal("")),

@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 
-const verticals = ["Tech", "Design", "Creative Arts", "Public Speaking"] as const;
+
 const proficiencies = ["Beginner", "Intermediate", "Advanced", "Shipped Projects"] as const;
 const branches = ["ME", "CSE", "ECE", "EEE", "Civil", "Other"];
 
@@ -40,7 +40,7 @@ export function IntakeForm() {
     }
   });
 
-  const selectedVertical = watch("primaryVertical");
+
 
   const onSubmit = async (data: IntakeFormData) => {
     setIsSubmitting(true);
@@ -148,25 +148,14 @@ export function IntakeForm() {
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
               <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 2: The Nectar</h3>
-              <div className="space-y-4">
-                <Label className="text-sm uppercase tracking-wider font-semibold">Primary Vertical</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {verticals.map((vertical) => (
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} key={vertical}>
-                      <Card className={`cursor-pointer transition-colors border-2 rounded-none shadow-none ${selectedVertical === vertical ? 'border-[#F59E0B] bg-[#F59E0B]/10' : 'border-[#0F172A] hover:border-[#F59E0B]'}`} onClick={() => setValue("primaryVertical", vertical, { shouldValidate: true })}>
-                        <CardContent className="p-6 flex items-center justify-between">
-                          <span className="font-bold tracking-tight">{vertical}</span>
-                          {selectedVertical === vertical && <div className="w-3 h-3 bg-[#F59E0B] clip-hexagon" />}
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-                {errors.primaryVertical && <p className="text-red-500 text-sm font-medium">{errors.primaryVertical.message}</p>}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm uppercase tracking-wider font-semibold">Email Address</Label>
+                <Input id="email" type="email" className="h-12 border-2 border-[#0F172A] focus-visible:ring-0 focus-visible:border-[#F59E0B] rounded-none bg-gray-50" {...register("email")} />
+                {errors.email && <p className="text-red-500 text-sm font-medium">{errors.email.message}</p>}
               </div>
               <div className="flex gap-4 pt-4">
                 <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 text-lg rounded-none border-2 border-[#0F172A] font-bold uppercase hover:bg-gray-100">Back</Button>
-                <Button type="button" onClick={() => nextStep(["primaryVertical"])} className="flex-1 h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase">Proceed</Button>
+                <Button type="button" onClick={() => nextStep(["email"])} className="flex-1 h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase">Proceed</Button>
               </div>
             </motion.div>
           )}

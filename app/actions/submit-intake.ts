@@ -30,8 +30,6 @@ export async function submitIntake(data: IntakeFormData) {
           primary_vertical: payload.email,
           core_skill: payload.coreSkill,
           proficiency_level: payload.proficiencyLevel,
-          portfolio_url: payload.portfolioUrl,
-          desired_cross_skill: payload.desiredCrossSkill,
           sprint_agreement: payload.sprintAgreement,
           created_at: new Date().toISOString(),
         }
@@ -66,7 +64,7 @@ export async function submitIntake(data: IntakeFormData) {
 
       await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: "Sheet1!A:K",
+        range: "Sheet1!A:I",
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [
@@ -78,8 +76,6 @@ export async function submitIntake(data: IntakeFormData) {
               payload.email, 
               payload.coreSkill, 
               payload.proficiencyLevel,
-              payload.portfolioUrl,
-              payload.desiredCrossSkill,
               payload.sprintAgreement ? "Yes" : "No",
               new Date().toISOString()
             ]

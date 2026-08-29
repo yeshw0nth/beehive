@@ -10,8 +10,6 @@ export const intakeFormSchema = z.object({
   email: z.string().email("Valid email is required."),
   coreSkill: z.string().min(2, "Please select at least one activity."),
   proficiencyLevel: z.string().min(2, "Proficiency level is required."),
-  portfolioUrl: z.string().url("Must be a valid URL").or(z.literal("")),
-  desiredCrossSkill: z.string().min(2, "Desired cross-skill is required."),
   sprintAgreement: z.boolean().refine(val => val === true, {
     message: "You must agree to the 14-Day Micro-Sprint.",
   }),

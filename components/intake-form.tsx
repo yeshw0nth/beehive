@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { submitIntake } from "@/app/actions/submit-intake";
 import { intakeFormSchema, IntakeFormData } from "@/lib/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,7 +48,6 @@ export function IntakeForm() {
     setValue,
     control,
     trigger,
-    watch,
     formState: { errors },
   } = useForm<IntakeFormData>({
     resolver: zodResolver(intakeFormSchema),
@@ -59,9 +58,11 @@ export function IntakeForm() {
     }
   });
 
+  const coreSkillValue = useWatch({
+    control,
+    name: "coreSkill",
+  }) as string || "";
 
-
-  const coreSkillValue = watch("coreSkill") || "";
   const selectedActivities = coreSkillValue ? coreSkillValue.split(", ").filter(Boolean) : [];
 
   const handleActivityChange = (activity: string, checked: boolean) => {

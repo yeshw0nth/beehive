@@ -10,7 +10,7 @@ export const intakeFormSchema = z.object({
   email: z.string().email("Valid email is required."),
   coreSkill: z.string().min(2, "Please select at least one activity."),
   skillRating: z.number().min(1).max(10),
-  sprintAgreement: z.boolean().refine(val => val === true, {
+  termsAgreement: z.boolean().refine(val => val === true, {
     message: "You must agree to the Terms & Conditions.",
   }),
 });

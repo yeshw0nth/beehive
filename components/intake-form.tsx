@@ -99,7 +99,7 @@ export function IntakeForm() {
     defaultValues: {
       branch: "",
       skillRating: 5,
-      sprintAgreement: false,
+      termsAgreement: false,
     }
   });
 
@@ -162,7 +162,7 @@ export function IntakeForm() {
   const prevStep = () => setStep((s) => Math.max(s - 1, 1));
 
   const handleFinalize = async () => {
-    const isValid = await trigger(["sprintAgreement"]);
+    const isValid = await trigger(["termsAgreement"]);
     if (isValid) {
       setShowSummary(true);
     }
@@ -241,7 +241,7 @@ export function IntakeForm() {
               </div>
               <div>
                 <span className="text-gray-500 uppercase tracking-wider block text-xs">Terms & Conditions</span>
-                <span className="text-[#0F172A] text-base font-bold">{getValues("sprintAgreement") ? "Agreed" : "Not Agreed"}</span>
+                <span className="text-[#0F172A] text-base font-bold">{getValues("termsAgreement") ? "Agreed" : "Not Agreed"}</span>
               </div>
             </div>
 
@@ -469,15 +469,15 @@ export function IntakeForm() {
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
               <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 4: Commitment</h3>
               <div className="space-y-4 border-l-4 border-[#F59E0B] pl-6 py-2">
-                <Controller control={control} name="sprintAgreement" render={({ field }) => (
+                <Controller control={control} name="termsAgreement" render={({ field }) => (
                   <div className="flex items-start space-x-4">
-                    <Checkbox id="sprintAgreement" checked={field.value} onCheckedChange={field.onChange} className="mt-1 border-2 border-[#0F172A] data-[state=checked]:bg-[#F59E0B] data-[state=checked]:text-white rounded-none w-6 h-6" />
-                    <Label htmlFor="sprintAgreement" className="text-base font-semibold leading-relaxed cursor-pointer">
+                    <Checkbox id="termsAgreement" checked={field.value} onCheckedChange={field.onChange} className="mt-1 border-2 border-[#0F172A] data-[state=checked]:bg-[#F59E0B] data-[state=checked]:text-white rounded-none w-6 h-6" />
+                    <Label htmlFor="termsAgreement" className="text-base font-semibold leading-relaxed cursor-pointer">
                       I agree to the Terms & Conditions.
                     </Label>
                   </div>
                 )} />
-                {errors.sprintAgreement && <p className="text-red-500 text-sm font-medium">{errors.sprintAgreement.message}</p>}
+                {errors.termsAgreement && <p className="text-red-500 text-sm font-medium">{errors.termsAgreement.message}</p>}
               </div>
               <div className="flex gap-4 pt-8">
                 <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 text-lg rounded-none border-2 border-[#0F172A] font-bold uppercase hover:bg-gray-100">Back</Button>

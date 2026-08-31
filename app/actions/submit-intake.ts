@@ -30,7 +30,7 @@ export async function submitIntake(data: IntakeFormData) {
           primary_vertical: payload.email,
           core_skill: payload.coreSkill,
           skill_rating: payload.skillRating,
-          sprint_agreement: payload.sprintAgreement,
+          terms_agreement: payload.termsAgreement,
           created_at: new Date().toISOString(),
         }
       ]);
@@ -76,7 +76,7 @@ export async function submitIntake(data: IntakeFormData) {
               payload.email, 
               payload.coreSkill, 
               payload.skillRating,
-              payload.sprintAgreement ? "Yes" : "No",
+              payload.termsAgreement ? "Yes" : "No",
               new Date().toISOString()
             ]
           ]

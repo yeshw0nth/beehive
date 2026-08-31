@@ -24,8 +24,8 @@ export async function updateTriageStatus(rollNumber: string, status: string) {
     }
 
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Unexpected error:", err);
-    return { success: false, error: err.message || "An unexpected error occurred" };
+    return { success: false, error: err instanceof Error ? err.message : "An unexpected error occurred" };
   }
 }

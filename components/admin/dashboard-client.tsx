@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateTriageStatus } from "@/app/actions/update-status";
 import { logoutAdmin } from "@/app/actions/auth";
@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-interface Submission {
+export interface Submission {
   id: string;
   full_name: string;
   roll_number: string;
@@ -19,16 +19,16 @@ interface Submission {
   primary_vertical: string;
   core_skill: string;
   skill_rating: number;
-  sprint_agreement: boolean;
+  terms_agreement: boolean;
   created_at: string;
   triage_status?: string;
 }
 
-export default function DashboardClient({ initialData }: { initialData: any[] }) {
+export default function DashboardClient({ initialData }: { initialData: Submission[] }) {
   const router = useRouter();
   const [data, setData] = useState<Submission[]>(initialData);
   const [search, setSearch] = useState("");
-  const [verticalFilter, setVerticalFilter] = useState("all");
+  const [verticalFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isPending, startTransition] = useTransition();
 
@@ -202,8 +202,8 @@ export default function DashboardClient({ initialData }: { initialData: any[] })
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.map((row) => (
-                <TableRow key={row.roll_number || row.id || Math.random().toString()} className="border-b-2 border-gray-100 hover:bg-gray-50">
+              {filteredData.map((row, idx) => (
+                <TableRow key={row.roll_number || row.id || idx.toString()} className="border-b-2 border-gray-100 hover:bg-gray-50">
                   <TableCell className="font-bold whitespace-nowrap">{row.full_name}</TableCell>
                   <TableCell className="text-gray-600 font-medium">{row.roll_number}</TableCell>
                   <TableCell className="text-gray-600 font-medium">{row.primary_vertical}</TableCell>

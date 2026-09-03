@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Submission {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fullName        String   @map("full_name")
+  rollNumber      String   @map("roll_number")
+  branch          String
+  whatsappNumber  String   @map("whatsapp_number")
+  primaryVertical String   @map("primary_vertical")
+  coreSkill       String   @map("core_skill")
+  skillRating     Int      @map("skill_rating")
+  termsAgreement  Boolean  @default(false) @map("terms_agreement")
+  triageStatus    String   @default("pending") @map("triage_status")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("submissions")
+}

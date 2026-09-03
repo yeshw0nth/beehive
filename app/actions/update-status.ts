@@ -1,27 +1,14 @@
 "use server";
 
-import { createClient } from '@supabase/supabase-js';
+import { prisma } from "@/lib/prisma";
 
 export async function updateTriageStatus(rollNumber: string, status: string) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    return { success: false, error: "Supabase credentials missing" };
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
   try {
-    const { error } = await supabase
-      .from('submissions')
-      .update({ triage_status: status })
-      .eq('roll_number', rollNumber);
-
-    if (error) {
-      console.error("Error updating triage status:", error);
-      return { success: false, error: error.message };
-    }
+    // We use updateMany because rollNumber is not explicitly marked @unique in schema
+    await prisma.submission.updateMany({
+      where: { rollNumber },
+      data: { triageStatus: status }
+    });
 
     return { success: true };
   } catch (err: unknown) {

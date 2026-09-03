@@ -1,26 +1,33 @@
-import { createClient } from '@supabase/supabase-js';
+import { prisma } from '@/lib/prisma';
 import DashboardClient, { Submission } from '@/components/admin/dashboard-client';
 
 export const dynamic = 'force-dynamic';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
 export default async function AdminDashboard() {
   let initialData: Submission[] = [];
   
-  if (supabaseUrl && supabaseKey) {
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const { data, error } = await supabase
-      .from('submissions')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (error) {
-      console.error("Error fetching submissions:", error);
-    } else if (data) {
-      initialData = data as Submission[];
-    }
+  try {
+    const data = await prisma.submission.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    
+    initialData = data.map(sub => ({
+      id: sub.id,
+      full_name: sub.fullName,
+      roll_number: sub.rollNumber,
+      branch: sub.branch,
+      whatsapp_number: sub.whatsappNumber,
+      primary_vertical: sub.primaryVertical,
+      core_skill: sub.coreSkill,
+      skill_rating: sub.skillRating,
+      terms_agreement: sub.termsAgreement,
+      triage_status: sub.triageStatus,
+      created_at: sub.createdAt.toISOString()
+    })) as Submission[];
+  } catch (error) {
+    console.error("Error fetching submissions:", error);
   }
 
   return (

@@ -1,8 +1,8 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
 import { google } from "googleapis";
 import { intakeFormSchema, IntakeFormData } from "@/lib/schema";
+import { prisma } from "@/lib/prisma";
 
 export async function submitIntake(data: IntakeFormData) {
   const result = intakeFormSchema.safeParse(data);
@@ -14,37 +14,25 @@ export async function submitIntake(data: IntakeFormData) {
   let supabaseSuccess = false;
   let sheetsSuccess = false;
 
-  // 1. Supabase Sync (Targeting 'submissions' table)
+  // 1. Prisma Sync (Targeting 'submissions' table)
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
-    
-    if (supabaseUrl !== "https://placeholder.supabase.co") {
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      const { error } = await supabase.from("submissions").insert([
-        {
-          full_name: payload.fullName,
-          roll_number: payload.rollNumber,
-          branch: payload.branch,
-          whatsapp_number: payload.whatsappNumber,
-          primary_vertical: payload.email,
-          core_skill: payload.coreSkill,
-          skill_rating: payload.skillRating,
-          terms_agreement: payload.termsAgreement,
-          created_at: new Date().toISOString(),
-        }
-      ]);
-      
-      if (error) {
-        console.error("Supabase Error:", error);
-      } else {
-        supabaseSuccess = true;
+    await prisma.submission.create({
+      data: {
+        fullName: payload.fullName,
+        rollNumber: payload.rollNumber,
+        branch: payload.branch,
+        whatsappNumber: payload.whatsappNumber,
+        primaryVertical: payload.email, // using email as primary_vertical as before
+        coreSkill: payload.coreSkill,
+        skillRating: payload.skillRating,
+        termsAgreement: payload.termsAgreement,
+        triageStatus: "pending",
       }
-    } else {
-      console.warn("Supabase credentials missing. Skipping Supabase insert.");
-    }
-  } catch (error) {
-    console.error("Supabase Error:", error);
+    });
+    supabaseSuccess = true;
+  } catch (error: any) {
+    console.error("Prisma Error:", error);
+    return { success: false, error: error.message || "Failed to save submission to the database." };
   }
 
   // 2. Google Sheets Sync (Defensive)
@@ -91,7 +79,6 @@ export async function submitIntake(data: IntakeFormData) {
     console.warn("Google Sheets Sync Failed:", error);
   }
 
-  // Return success as long as we validated, even if env vars are missing (for dev), or if supabase succeeded
   return { 
     success: true, 
     supabaseSuccess, 

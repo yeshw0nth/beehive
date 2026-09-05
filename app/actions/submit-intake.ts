@@ -22,9 +22,8 @@ export async function submitIntake(data: IntakeFormData) {
         rollNumber: payload.rollNumber,
         branch: payload.branch,
         whatsappNumber: payload.whatsappNumber,
-        primaryVertical: payload.email, // using email as primary_vertical as before
-        coreSkill: payload.coreSkill,
-        skillRating: payload.skillRating,
+        email: payload.email,
+        skillsData: payload.skillsData,
         termsAgreement: payload.termsAgreement,
         triageStatus: "pending",
       }
@@ -62,8 +61,7 @@ export async function submitIntake(data: IntakeFormData) {
               payload.branch,
               payload.whatsappNumber,
               payload.email, 
-              payload.coreSkill, 
-              payload.skillRating,
+              JSON.stringify(payload.skillsData),
               payload.termsAgreement ? "Yes" : "No",
               new Date().toISOString()
             ]

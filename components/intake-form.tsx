@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { motion, AnimatePresence } from "framer-motion";
 
 
@@ -82,7 +83,7 @@ export function IntakeForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionData, setSubmissionData] = useState<{ rollNumber: string; timestamp: string } | null>(null);
   const [showSummary, setShowSummary] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [activeCategories, setActiveCategories] = useState<number[]>([]);
   const [showOtherInput, setShowOtherInput] = useState<Record<number, boolean>>({});
   const [otherText, setOtherText] = useState<Record<number, string>>({});
 
@@ -98,41 +99,38 @@ export function IntakeForm() {
     resolver: zodResolver(intakeFormSchema),
     defaultValues: {
       branch: "",
-      skillRating: 5,
+      skillsData: [],
       termsAgreement: false,
     }
   });
 
-  const coreSkillValue = useWatch({
+  const skillsData = useWatch({
     control,
-    name: "coreSkill",
-  }) as string || "";
+    name: "skillsData",
+  }) || [];
 
-  const selectedActivities = coreSkillValue ? coreSkillValue.split(", ").filter(Boolean) : [];
-
-  const handleActivityChange = (activity: string, checked: boolean) => {
-    let newActivities = [...selectedActivities];
+  const handleActivityChange = (categoryName: string, activity: string, checked: boolean) => {
+    let newSkills = [...skillsData];
     if (checked) {
-      if (!newActivities.includes(activity)) {
-        newActivities.push(activity);
+      if (!newSkills.find(s => s.skill === activity)) {
+        newSkills.push({ category: categoryName, skill: activity, rating: 5 });
       }
     } else {
-      newActivities = newActivities.filter(a => a !== activity);
+      newSkills = newSkills.filter(a => a.skill !== activity);
     }
-    setValue("coreSkill", newActivities.join(", "), { shouldValidate: true });
+    setValue("skillsData", newSkills, { shouldValidate: true });
   };
 
-  const handleTalentToggle = (talent: string) => {
-    const isSelected = selectedActivities.includes(talent);
-    handleActivityChange(talent, !isSelected);
+  const handleTalentToggle = (categoryName: string, talent: string) => {
+    const isSelected = !!skillsData.find(s => s.skill === talent);
+    handleActivityChange(categoryName, talent, !isSelected);
   };
 
-  const handleOtherSave = (catIdx: number) => {
+  const handleOtherSave = (catIdx: number, categoryName: string) => {
     const text = (otherText[catIdx] || "").trim();
     if (text) {
-      // Toggle selection of this custom talent if it's not already added
-      if (!selectedActivities.includes(text)) {
-        handleActivityChange(text, true);
+      if (!skillsData.find(s => s.skill === text)) {
+        handleActivityChange(categoryName, text, true);
       }
       setOtherText(prev => ({ ...prev, [catIdx]: "" }));
       setShowOtherInput(prev => ({ ...prev, [catIdx]: false }));
@@ -155,7 +153,7 @@ export function IntakeForm() {
   const nextStep = async (fieldsToValidate: (keyof IntakeFormData)[]) => {
     const isValid = await trigger(fieldsToValidate);
     if (isValid) {
-      setStep((s) => Math.min(s + 1, 3));
+      setStep((s) => Math.min(s + 1, 4));
     }
   };
   
@@ -168,7 +166,7 @@ export function IntakeForm() {
     }
   };
 
-  const showHeader = step < 3 && !showSummary && !submissionData;
+  const showHeader = step < 4 && !showSummary && !submissionData;
 
   if (submissionData) {
     return (
@@ -232,12 +230,14 @@ export function IntakeForm() {
                 <span className="text-[#0F172A] text-base font-bold">{getValues("whatsappNumber")}</span>
               </div>
               <div>
-                <span className="text-gray-500 uppercase tracking-wider block text-xs">Selected Activities</span>
-                <span className="text-[#0F172A] text-base font-bold">{getValues("coreSkill")}</span>
-              </div>
-              <div>
-                <span className="text-gray-500 uppercase tracking-wider block text-xs">Skill Rating</span>
-                <span className="text-[#0F172A] text-base font-bold">{getValues("skillRating")}/10</span>
+                <span className="text-gray-500 uppercase tracking-wider block text-xs">Selected Activities & Ratings</span>
+                <div className="flex flex-col gap-1 mt-1">
+                  {getValues("skillsData")?.map((s, idx) => (
+                    <span key={idx} className="text-[#0F172A] text-sm font-bold">
+                      {s.skill} - {s.rating}/10
+                    </span>
+                  ))}
+                </div>
               </div>
               <div>
                 <span className="text-gray-500 uppercase tracking-wider block text-xs">Terms & Conditions</span>
@@ -330,16 +330,16 @@ export function IntakeForm() {
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
               <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 2: Skill & Talent Selection</h3>
               <div className="space-y-4">
-                <Label className="text-sm uppercase tracking-wider font-semibold text-[#1E293B]">Select a category to expand skills</Label>
+                <Label className="text-sm uppercase tracking-wider font-semibold text-[#1E293B]">Select categories to expand skills</Label>
                 
                 <div className="flex flex-wrap gap-2">
                   {activityCategories.map((category, idx) => (
                     <button
                       key={category.name}
                       type="button"
-                      onClick={() => setActiveCategory(activeCategory === idx ? null : idx)}
+                      onClick={() => setActiveCategories(prev => prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx])}
                       className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-150 rounded-none border-2 ${
-                        activeCategory === idx
+                        activeCategories.includes(idx)
                           ? "border-[#F59E0B] bg-[#1E293B] text-[#F59E0B]"
                           : "border-[#1E293B] text-[#1E293B] bg-white hover:border-[#F59E0B]"
                       }`}
@@ -350,25 +350,25 @@ export function IntakeForm() {
                 </div>
 
                 <AnimatePresence>
-                  {activeCategory !== null && (
+                  {activeCategories.map((activeCategory) => (
                     <motion.div
                       key={activeCategory}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden mt-4 border-l-4 border-[#F59E0B] pl-4"
+                      className="overflow-hidden mt-4 border-l-4 border-[#F59E0B] pl-4 mb-4"
                     >
                       <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
                         Select Talents: {activityCategories[activeCategory].name}
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {activityCategories[activeCategory].talents.map((talent) => {
-                          const isSelected = selectedActivities.includes(talent);
+                          const isSelected = !!skillsData.find(s => s.skill === talent);
                           return (
                             <button
                               key={talent}
                               type="button"
-                              onClick={() => handleTalentToggle(talent)}
+                              onClick={() => handleTalentToggle(activityCategories[activeCategory].name, talent)}
                               className={`px-3 py-1.5 rounded-none border-2 text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${
                                 isSelected
                                   ? "border-[#F59E0B] text-white bg-[#1E293B]"
@@ -390,7 +390,7 @@ export function IntakeForm() {
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                   e.preventDefault();
-                                  handleOtherSave(activeCategory);
+                                  handleOtherSave(activeCategory, activityCategories[activeCategory].name);
                                 }
                               }}
                               placeholder="Specify talent..."
@@ -399,7 +399,7 @@ export function IntakeForm() {
                             />
                             <button
                               type="button"
-                              onClick={() => handleOtherSave(activeCategory)}
+                              onClick={() => handleOtherSave(activeCategory, activityCategories[activeCategory].name)}
                               className="text-[10px] font-extrabold uppercase text-[#F59E0B] hover:text-[#D97706]"
                             >
                               Add
@@ -416,68 +416,69 @@ export function IntakeForm() {
                         )}
                       </div>
                     </motion.div>
-                  )}
+                  ))}
                 </AnimatePresence>
                 
                 {/* Visual Confirmation of custom skills */}
-                {selectedActivities.filter(skill => !activityCategories.flatMap(c => c.talents).includes(skill)).map(customSkill => (
-                  <div key={customSkill} className="inline-block mt-2 mr-2 px-3 py-1 bg-gray-100 border-l-2 border-[#F59E0B] text-xs font-bold uppercase text-[#1E293B]">
-                    Selected Skill: {customSkill}
-                    <button type="button" onClick={() => handleTalentToggle(customSkill)} className="ml-2 text-red-500 font-bold hover:text-red-700">×</button>
+                {skillsData.filter(s => !activityCategories.flatMap(c => c.talents).includes(s.skill)).map(customSkill => (
+                  <div key={customSkill.skill} className="inline-block mt-2 mr-2 px-3 py-1 bg-gray-100 border-l-2 border-[#F59E0B] text-xs font-bold uppercase text-[#1E293B]">
+                    Selected Skill: {customSkill.skill}
+                    <button type="button" onClick={() => handleTalentToggle(customSkill.category || "Custom", customSkill.skill)} className="ml-2 text-red-500 font-bold hover:text-red-700">×</button>
                   </div>
                 ))}
 
-                {errors.coreSkill && <p className="text-red-500 text-sm font-medium mt-2">{errors.coreSkill.message}</p>}
+                {errors.skillsData && <p className="text-red-500 text-sm font-medium mt-2">{errors.skillsData.message}</p>}
               </div>
-
-              {/* Dynamic Proficiency Slider appears inline if a skill is selected */}
-              <AnimatePresence>
-                {selectedActivities.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="pt-6 border-t-2 border-gray-200 mt-6"
-                  >
-                    <Label className="text-sm uppercase tracking-wider font-semibold text-[#1E293B]">
-                      Rate your proficiency in {coreSkillValue}
-                    </Label>
-                    <Controller control={control} name="skillRating" render={({ field }) => (
-                      <div className="flex flex-wrap gap-2 justify-between mt-3">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
-                          const isSelected = field.value === num;
-                          return (
-                            <button
-                              key={num}
-                              type="button"
-                              onClick={() => field.onChange(num)}
-                              className={`w-9 h-9 sm:w-11 sm:h-11 border-2 font-bold text-base sm:text-lg transition-colors duration-150 rounded-none flex items-center justify-center ${
-                                isSelected
-                                  ? "bg-[#F59E0B] text-white border-[#F59E0B]"
-                                  : "border-[#0F172A] text-[#0F172A] hover:border-[#F59E0B] bg-white"
-                              }`}
-                            >
-                              {num}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )} />
-                    {errors.skillRating && <p className="text-red-500 text-sm font-medium mt-2">{errors.skillRating.message}</p>}
-                  </motion.div>
-                )}
-              </AnimatePresence>
 
               <div className="flex gap-4 pt-4">
                 <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 text-lg rounded-none border-2 border-[#0F172A] font-bold uppercase hover:bg-gray-100">Back</Button>
-                <Button type="button" onClick={() => nextStep(["coreSkill", "skillRating"])} className="flex-1 h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase">Proceed</Button>
+                <Button type="button" onClick={() => nextStep(["skillsData"])} className="flex-1 h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase">Proceed</Button>
               </div>
             </motion.div>
           )}
 
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 3: Commitment</h3>
+              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 3: Proficiency</h3>
+              <div className="space-y-8">
+                {skillsData.length === 0 ? (
+                  <p className="text-gray-500 italic">No skills selected.</p>
+                ) : (
+                  skillsData.map((s, index) => (
+                    <div key={s.skill} className="space-y-4">
+                      <Label className="text-sm uppercase tracking-wider font-semibold text-[#1E293B] block mb-2">
+                        Rate your proficiency in {s.skill} ({s.rating}/10)
+                      </Label>
+                      <Controller
+                        control={control}
+                        name={`skillsData.${index}.rating` as const}
+                        render={({ field }) => (
+                          <div className="px-2">
+                            <Slider
+                              value={[field.value]}
+                              onValueChange={(val) => field.onChange(Array.isArray(val) ? val[0] : val)}
+                              max={10}
+                              min={1}
+                              step={1}
+                              className="py-4"
+                            />
+                          </div>
+                        )}
+                      />
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="flex gap-4 pt-4 border-t-2 border-gray-200 mt-8">
+                <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 text-lg rounded-none border-2 border-[#0F172A] font-bold uppercase hover:bg-gray-100">Back</Button>
+                <Button type="button" onClick={() => setStep(4)} className="flex-1 h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase">Proceed</Button>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 4 && (
+            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <h3 className="text-2xl font-bold uppercase tracking-tight mb-6">Phase 4: Commitment</h3>
               <div className="space-y-4 border-l-4 border-[#F59E0B] pl-6 py-2">
                 <Controller control={control} name="termsAgreement" render={({ field }) => (
                   <div className="flex items-start space-x-4">

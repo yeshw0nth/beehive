@@ -19,9 +19,8 @@ export default async function AdminDashboard() {
       roll_number: sub.rollNumber,
       branch: sub.branch,
       whatsapp_number: sub.whatsappNumber,
-      primary_vertical: sub.primaryVertical,
-      core_skill: sub.coreSkill,
-      skill_rating: sub.skillRating,
+      email: sub.email,
+      skills_data: sub.skillsData,
       terms_agreement: sub.termsAgreement,
       triage_status: sub.triageStatus,
       created_at: sub.createdAt.toISOString()

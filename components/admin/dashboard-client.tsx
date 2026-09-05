@@ -16,9 +16,8 @@ export interface Submission {
   roll_number: string;
   branch: string;
   whatsapp_number: string;
-  primary_vertical: string;
-  core_skill: string;
-  skill_rating: number;
+  email: string | null;
+  skills_data: any;
   terms_agreement: boolean;
   created_at: string;
   triage_status?: string;
@@ -28,7 +27,6 @@ export default function DashboardClient({ initialData }: { initialData: Submissi
   const router = useRouter();
   const [data, setData] = useState<Submission[]>(initialData);
   const [search, setSearch] = useState("");
-  const [verticalFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isPending, startTransition] = useTransition();
 
@@ -56,7 +54,7 @@ export default function DashboardClient({ initialData }: { initialData: Submissi
   const exportCSV = () => {
     if (filteredData.length === 0) return;
     
-    const headers = ["Name", "Year", "Branch", "WhatsApp", "Email", "Core Skill", "Skill Rating", "Status", "Date"];
+    const headers = ["Name", "Year", "Branch", "WhatsApp", "Email", "Skills JSON", "Avg Rating", "Status", "Date"];
     const csvContent = [
       headers.join(","),
       ...filteredData.map(d => [
@@ -64,9 +62,9 @@ export default function DashboardClient({ initialData }: { initialData: Submissi
         `"${d.roll_number || ''}"`,
         `"${d.branch || ''}"`,
         `"${d.whatsapp_number || ''}"`,
-        `"${d.primary_vertical || ''}"`,
-        `"${d.core_skill || ''}"`,
-        d.skill_rating || 0,
+        `"${d.email || ''}"`,
+        `"${JSON.stringify(d.skills_data || []).replace(/"/g, '""')}"`,
+        (d.skills_data && Array.isArray(d.skills_data) && d.skills_data.length > 0) ? (d.skills_data.reduce((a: number, c: any) => a + c.rating, 0) / d.skills_data.length).toFixed(1) : 0,
         `"${d.triage_status || 'Pending'}"`,
         `"${new Date(d.created_at).toLocaleDateString()}"`
       ].join(","))
@@ -86,25 +84,33 @@ export default function DashboardClient({ initialData }: { initialData: Submissi
   const safeData = data.map(d => ({
     ...d,
     triage_status: d.triage_status || "Pending",
-    skill_rating: d.skill_rating || 1
+    skills_data: Array.isArray(d.skills_data) ? d.skills_data : []
   }));
 
   // Filtering
   const filteredData = safeData.filter(d => {
+    const skillsString = d.skills_data.map((s: any) => s.skill).join(" ");
     const matchesSearch = 
       (d.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
       (d.roll_number || "").toLowerCase().includes(search.toLowerCase()) ||
-      (d.core_skill || "").toLowerCase().includes(search.toLowerCase());
+      skillsString.toLowerCase().includes(search.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || d.triage_status === statusFilter;
-    const matchesVertical = verticalFilter === "all" || (d.primary_vertical || "").includes(verticalFilter);
 
-    return matchesSearch && matchesStatus && matchesVertical;
+    return matchesSearch && matchesStatus;
   });
 
   // KPIs
   const totalApps = safeData.length;
-  const avgSkill = totalApps > 0 ? (safeData.reduce((acc, curr) => acc + curr.skill_rating, 0) / totalApps).toFixed(1) : "0.0";
+  let totalRating = 0;
+  let ratingCount = 0;
+  safeData.forEach(d => {
+    d.skills_data.forEach((s: any) => {
+      totalRating += s.rating;
+      ratingCount++;
+    });
+  });
+  const avgSkill = ratingCount > 0 ? (totalRating / ratingCount).toFixed(1) : "0.0";
   
   const statusCounts = safeData.reduce((acc, curr) => {
     acc[curr.triage_status] = (acc[curr.triage_status] || 0) + 1;
@@ -194,9 +200,8 @@ export default function DashboardClient({ initialData }: { initialData: Submissi
               <TableRow className="hover:bg-[#1E293B]">
                 <TableHead className="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">Name</TableHead>
                 <TableHead className="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">Year</TableHead>
-                <TableHead className="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">Email / Vertical</TableHead>
-                <TableHead className="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">Skills</TableHead>
-                <TableHead className="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">Rating</TableHead>
+                <TableHead className="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">Email</TableHead>
+                <TableHead className="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">Skills & Ratings</TableHead>
                 <TableHead className="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">Status</TableHead>
                 <TableHead className="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">Contact</TableHead>
               </TableRow>
@@ -206,12 +211,18 @@ export default function DashboardClient({ initialData }: { initialData: Submissi
                 <TableRow key={row.roll_number || row.id || idx.toString()} className="border-b-2 border-gray-100 hover:bg-gray-50">
                   <TableCell className="font-bold whitespace-nowrap">{row.full_name}</TableCell>
                   <TableCell className="text-gray-600 font-medium">{row.roll_number}</TableCell>
-                  <TableCell className="text-gray-600 font-medium">{row.primary_vertical}</TableCell>
-                  <TableCell className="max-w-xs truncate text-xs font-semibold" title={row.core_skill}>{row.core_skill}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="rounded-none border-[#F59E0B] text-[#F59E0B] font-bold">
-                      {row.skill_rating}/10
-                    </Badge>
+                  <TableCell className="text-gray-600 font-medium">{row.email || 'N/A'}</TableCell>
+                  <TableCell className="max-w-xs text-xs font-semibold">
+                    <div className="flex flex-col gap-1">
+                      {row.skills_data.map((s: any, i: number) => (
+                        <div key={i} className="flex justify-between items-center border-b border-gray-100 last:border-0 pb-1 last:pb-0">
+                          <span title={s.skill} className="truncate max-w-[150px]">{s.skill}</span>
+                          <Badge variant="outline" className="rounded-none border-[#F59E0B] text-[#F59E0B] font-bold text-[10px] px-1 py-0 h-4 min-w-[30px] flex items-center justify-center">
+                            {s.rating}/10
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Select value={row.triage_status} onValueChange={(val) => val !== null && handleStatusChange(row.roll_number, val)}>

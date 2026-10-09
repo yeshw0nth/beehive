@@ -13,6 +13,7 @@ model Submission {
   fullName        String   @map("full_name")
   rollNumber      String   @map("roll_number")
   branch          String
+  yearOfStudy     Int      @default(1) @map("year_of_study")
   whatsappNumber  String   @map("whatsapp_number")
   email           String?
   skillsData      Json     @default("[]") @map("skills_data")

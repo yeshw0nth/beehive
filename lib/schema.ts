@@ -3,8 +3,9 @@ import { z } from "zod";
 // Zod Schema for 7-Phase Intake
 export const intakeFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters."),
-  rollNumber: z.string().min(1, "Year is required."),
+  rollNumber: z.string().min(1, "Roll number is required."),
   branch: z.string().min(2, "Branch is required."),
+  yearOfStudy: z.coerce.number().min(1, "Year of study is required").max(4, "Invalid year"),
   whatsappNumber: z.string().min(10, "Valid WhatsApp number is required."),
   
   email: z.string().email("Valid email is required."),

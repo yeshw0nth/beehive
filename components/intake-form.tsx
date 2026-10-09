@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 
@@ -99,6 +99,7 @@ export function IntakeForm() {
     resolver: zodResolver(intakeFormSchema),
     defaultValues: {
       branch: "",
+      yearOfStudy: 1,
       skillsData: [],
       termsAgreement: false,
     }
@@ -291,9 +292,23 @@ export function IntakeForm() {
                   {errors.fullName && <p className="text-red-500 text-sm font-medium">{errors.fullName.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="rollNumber" className="text-sm uppercase tracking-wider font-semibold">Year</Label>
+                  <Label htmlFor="rollNumber" className="text-sm uppercase tracking-wider font-semibold">Roll Number</Label>
                   <Input id="rollNumber" className="h-12 border-2 border-[#0F172A] focus-visible:ring-0 focus-visible:border-[#F59E0B] rounded-none bg-gray-50" {...register("rollNumber")} />
                   {errors.rollNumber && <p className="text-red-500 text-sm font-medium">{errors.rollNumber.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm uppercase tracking-wider font-semibold">Year of Study</Label>
+                  <Controller control={control} name="yearOfStudy" render={({ field }) => (
+                    <Select onValueChange={(val) => field.onChange(parseInt(val as string, 10))} value={field.value ? field.value.toString() : ""}>
+                      <SelectTrigger className="h-12 border-2 border-[#0F172A] rounded-none bg-gray-50">
+                        <SelectValue placeholder="Select Year" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-none border-2 border-[#0F172A]">
+                        {[1, 2, 3, 4].map(y => <SelectItem key={y} value={y.toString()} className="rounded-none">Year {y}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )} />
+                  {errors.yearOfStudy && <p className="text-red-500 text-sm font-medium">{errors.yearOfStudy.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm uppercase tracking-wider font-semibold">Email Address</Label>
@@ -320,7 +335,7 @@ export function IntakeForm() {
                   {errors.whatsappNumber && <p className="text-red-500 text-sm font-medium">{errors.whatsappNumber.message}</p>}
                 </div>
               </div>
-              <Button type="button" onClick={() => nextStep(["fullName", "rollNumber", "email", "branch", "whatsappNumber"])} className="w-full h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase tracking-widest mt-4">
+              <Button type="button" onClick={() => nextStep(["fullName", "rollNumber", "yearOfStudy", "email", "branch", "whatsappNumber"])} className="w-full h-14 text-lg bg-[#0F172A] text-white hover:bg-[#F59E0B] transition-colors rounded-none font-bold uppercase tracking-widest mt-4">
                 Initialize Sequence
               </Button>
             </motion.div>
@@ -454,14 +469,19 @@ export function IntakeForm() {
                         name={`skillsData.${index}.rating` as const}
                         render={({ field }) => (
                           <div className="px-2">
-                            <Slider
-                              value={[field.value]}
-                              onValueChange={(val) => field.onChange(Array.isArray(val) ? val[0] : val)}
-                              max={10}
+                            <input
+                              type="range"
                               min={1}
+                              max={10}
                               step={1}
-                              className="py-4"
+                              value={field.value}
+                              onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F59E0B]"
                             />
+                            <div className="flex justify-between text-xs font-bold text-gray-500 mt-2 px-1">
+                              <span>1 (Beginner)</span>
+                              <span>10 (Expert)</span>
+                            </div>
                           </div>
                         )}
                       />

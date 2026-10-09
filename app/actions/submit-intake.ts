@@ -20,6 +20,7 @@ export async function submitIntake(data: IntakeFormData) {
       data: {
         fullName: payload.fullName,
         rollNumber: payload.rollNumber,
+        yearOfStudy: payload.yearOfStudy,
         branch: payload.branch,
         whatsappNumber: payload.whatsappNumber,
         email: payload.email,

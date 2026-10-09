@@ -461,9 +461,10 @@ export function IntakeForm() {
                 ) : (
                   skillsData.map((s, index) => (
                     <div key={s.skill} className="space-y-4">
-                      <Label className="text-sm uppercase tracking-wider font-semibold text-[#1E293B] block mb-2">
+                      <Label className="text-sm uppercase tracking-wider font-semibold text-[#1E293B] block mb-0.5">
                         Rate your proficiency in {s.skill} ({s.rating}/10)
                       </Label>
+                      <p className="text-sm text-gray-500 mb-3 font-medium">Drag the slider to score your proficiency.</p>
                       <Controller
                         control={control}
                         name={`skillsData.${index}.rating` as const}
@@ -471,15 +472,16 @@ export function IntakeForm() {
                           <div className="px-2">
                             <input
                               type="range"
-                              min={1}
+                              min={0}
                               max={10}
                               step={1}
                               value={field.value}
                               onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
-                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F59E0B]"
+                              className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#F59E0B]"
+                              style={{ background: `linear-gradient(to right, #f59e0b ${field.value * 10}%, #e5e7eb ${field.value * 10}%)` }}
                             />
                             <div className="flex justify-between text-xs font-bold text-gray-500 mt-2 px-1">
-                              <span>1 (Beginner)</span>
+                              <span>0 (Beginner)</span>
                               <span>10 (Expert)</span>
                             </div>
                           </div>

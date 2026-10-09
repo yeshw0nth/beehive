@@ -12,7 +12,7 @@ export const intakeFormSchema = z.object({
   skillsData: z.array(z.object({
     category: z.string().optional(),
     skill: z.string(),
-    rating: z.coerce.number().min(1).max(10)
+    rating: z.coerce.number().min(0).max(10)
   })).min(1, "Please select at least one activity."),
   termsAgreement: z.boolean().refine(val => val === true, {
     message: "You must agree to the Terms & Conditions.",
